@@ -3,15 +3,17 @@ export async function onRequestPost(context) {
     const request = context.request;
     const { email } = await request.json();
 
-    // Validamos de nuevo por seguridad en el backend
+    // Validamos que venga un correo
     if (!email || !email.includes('@')) {
       return new Response(JSON.stringify({ error: 'Correo inválido' }), { status: 400 });
     }
 
-    // Obtenemos la llave secreta que guardaremos en Cloudflare
+    // Obtenemos tu llave de Resend
     const RESEND_API_KEY = context.env.RESEND_API_KEY;
+    
+    // AQUÍ ESTÁ LA MAGIA: Configuramos tu correo como el receptor
+    const MI_CORREO = 'qoreoficial19@gmail.com'; 
 
-    // Llamada a la API de Resend para enviar el correo automático
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -19,15 +21,20 @@ export async function onRequestPost(context) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Qore <onboarding@resend.dev>', // Cambiarás esto cuando verifiques tu dominio en Resend
-        to: [email],
-        subject: '¡Estás en la lista de espera de Qore!',
+        from: 'Waitlist Qore <onboarding@resend.dev>', // Usamos el bot autorizado de Resend
+        to: [MI_CORREO], // El correo de aviso te llegará a ti
+        subject: '🚀 ¡Nuevo cliente en la Waitlist de Qore!',
         html: `
-          <div style="font-family: sans-serif; background-color: #050505; color: #ededed; padding: 40px; border-radius: 10px;">
-            <h2 style="color: #ffffff; font-weight: 500;">¡Te has registrado con éxito! 🎉</h2>
-            <p style="color: #888888; line-height: 1.5;">Gracias por unirte a la waitlist de Qore. Eres de los primeros en dar el paso hacia un sistema inteligente de reseñas y analíticas.</p>
-            <p style="color: #888888; line-height: 1.5;">Te avisaremos en cuanto el sistema esté completamente operativo para darte acceso con tu beneficio de fundador.</p>
-            <p style="color: #555555; font-size: 12px; margin-top: 30px;">qore_oficial</p>
+          <div style="font-family: sans-serif; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+            <h2 style="color: #111;">¡Tienes un nuevo prospecto! 🎉</h2>
+            <p style="color: #555; font-size: 16px;">Alguien acaba de registrarse en la lista de espera de Qore desde tu sitio web.</p>
+            
+            <div style="background-color: #fff; padding: 20px; border-left: 4px solid #000; margin: 20px 0; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+              <p style="margin: 0; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Correo del interesado:</p>
+              <p style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; color: #007bff;">${email}</p>
+            </div>
+            
+            <p style="color: #888; font-size: 13px;">Guarda este correo para contactarlo cuando lances el sistema y darle su precio de fundador.</p>
           </div>
         `
       })
